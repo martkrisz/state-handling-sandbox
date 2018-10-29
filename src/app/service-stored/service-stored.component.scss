@@ -1,0 +1,13 @@
+:host {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 50%;
+
+  .title {
+    font-size: 30px;
+    font-weight: bold;
+    width: 25%;
+  }
+}
