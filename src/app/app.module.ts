@@ -1,3 +1,4 @@
+import { Store } from './custom-stored/store';
 import { FormsModule } from '@angular/forms';
 import { AuthActions } from './redux-stored/actions/auth.action';
 import { BrowserModule } from '@angular/platform-browser';
@@ -30,7 +31,7 @@ import { TwoWayPocComponent } from './two-way-poc/two-way-poc.component';
     NgReduxModule,
     FormsModule
   ],
-  providers: [AuthActions],
+  providers: [AuthActions, Store],
   bootstrap: [AppComponent]
 })
 export class AppModule {
