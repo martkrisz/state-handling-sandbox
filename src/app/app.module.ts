@@ -1,3 +1,4 @@
+import { FormsModule } from '@angular/forms';
 import { AuthActions } from './redux-stored/actions/auth.action';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
@@ -11,18 +12,23 @@ import { ServiceStoredComponent } from './service-stored/service-stored.componen
 import { ReduxStoredComponent } from './redux-stored/redux-stored.component';
 import { environment } from 'src/environments/environment.prod';
 import { rootReducer } from './redux-stored/reducers/core.reducer';
+import { CustomStoredComponent } from './custom-stored/custom-stored.component';
+import { TwoWayPocComponent } from './two-way-poc/two-way-poc.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     HomeComponent,
     ServiceStoredComponent,
-    ReduxStoredComponent
+    ReduxStoredComponent,
+    CustomStoredComponent,
+    TwoWayPocComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
-    NgReduxModule
+    NgReduxModule,
+    FormsModule
   ],
   providers: [AuthActions],
   bootstrap: [AppComponent]

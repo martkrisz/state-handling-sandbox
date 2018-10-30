@@ -20,7 +20,6 @@ export class AuthService {
   }
 
   login() {
-    console.log(this.isLoggedIn());
     localStorage.setItem('loginStatus', 'true');
     this.loggedIn.next(true);
   }

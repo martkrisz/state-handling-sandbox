@@ -1,0 +1,5 @@
+<span class="title">Custom-stored state</span>
+<div class="box box--green" *ngIf="(isLoggedIn$ | async)">Logged in</div>
+<div class="box box--red" *ngIf="!(isLoggedIn$ | async)">Logged out</div>
+<button (click)="login()">Login</button>
+<button (click)="logout()">Logout</button>

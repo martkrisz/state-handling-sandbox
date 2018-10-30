@@ -1,7 +1,14 @@
 :host {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center;
   margin: 100px 0 0 100px;
+
+  .first-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: space-between;
+  }
 }

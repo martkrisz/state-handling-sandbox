@@ -1,0 +1,11 @@
+<span class="title">Two-way data binding POC</span>
+<div class="row">
+  <div class="column">
+    <input (input)="handleFirst($event)" [(ngModel)]="string1" name="string1">
+    <div>{{bs1 | async}}</div>
+  </div>
+  <div class="column">
+    <input (input)="handleSecond($event)" [(ngModel)]="string2" name="string2">
+    <div>{{bs1 | async}}</div>
+  </div>
+</div>
