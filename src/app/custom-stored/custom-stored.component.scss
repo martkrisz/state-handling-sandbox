@@ -10,4 +10,10 @@
     font-weight: bold;
     width: 50%;
   }
+
+  .boxes {
+    :first-child {
+      margin-bottom: 50px;
+    }
+  }
 }

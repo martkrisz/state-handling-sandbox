@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { filter } from 'rxjs/operators';
+import { filter, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-two-way-poc',
@@ -22,7 +22,7 @@ export class TwoWayPocComponent implements OnInit {
       this.bs2.next(data);
     });
 
-    this.bs2.pipe(filter(res => res !== this.bs1.value)).subscribe(data => {
+    this.bs2.pipe(distinctUntilChanged()).subscribe(data => {
       this.bs1.next(data);
     });
   }
@@ -31,7 +31,7 @@ export class TwoWayPocComponent implements OnInit {
     this.bs1.next(this.string1);
   }
 
-  handleSecond(event) {
+  handleSecond() {
     this.bs2.next(this.string2);
   }
 }
