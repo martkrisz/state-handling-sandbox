@@ -3,7 +3,7 @@
   <div class="box box--green" *ngIf="(isLoggedIn$ | async)">Logged in</div>
   <div class="box box--red" *ngIf="!(isLoggedIn$ | async)">Logged out</div>
   <div class="box box--green" *ngIf="(isLoggedInReadonly$ | async)">Logged in readonly</div>
-  <div class="box box--red" *ngIf="!(isLoggedInReadonly$ | async)">Logged out readonly</div>
+  <div class="box box--red" *ngIf="!(isLoggedInReadonly$ | async)">Logged out<br> readonly</div>
 </div>
 <button (click)="login()">Login</button>
 <button (click)="logout()">Logout</button>
