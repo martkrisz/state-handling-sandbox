@@ -35,22 +35,33 @@ export class Store {
       }
     });
     this.updateHistory(null, this.state, 'INITIAL_STATE');
-  }
-
-  getWholeState(): Object {
-    return this.stateSubject.value;
-  }
-
-  getWholeStateAsObservable(): Observable<Object> {
-    return this.stateSubject.asObservable();
+    this.getWholeStateAsObservable().subscribe(state => {
+      let prevData = null;
+      Object.keys(state).forEach(property => {
+        state[property].pipe(distinctUntilChanged((prev, curr) => {
+          prevData = prev;
+          return curr === prev;
+        })).subscribe(() => {
+          this.updateHistory(prevData, state[property].value, `SUBSTATE_CHANGED_IN_${property}`);
+        });
+      });
+    });
   }
 
   register(propertyName: string, property) {
     const prevState = new Object(this.state);
-    const newProperty = new BehaviorSubject<typeof property>(property);
-    this.state[propertyName] = newProperty;
-    this.updateState();
-    this.updateHistory(prevState, this.state, `REGISTERED ${propertyName}`);
+    if (!this.state[propertyName]) {
+      const newProperty = new BehaviorSubject<typeof property>(property);
+      this.state[propertyName] = newProperty;
+      this.updateState();
+      this.updateHistory(prevState, this.state, `REGISTERED ${propertyName}`);
+    } else {
+      this.updateHistory(
+        prevState,
+        this.state,
+        `REGISTRATION_ATTEMPT_ALREADY_REGISTERED ${propertyName}`
+      );
+    }
   }
 
   connect(propertyName: string, property): BehaviorSubject<typeof property> {
@@ -58,9 +69,11 @@ export class Store {
     connectedProperty.pipe(distinctUntilChanged()).subscribe(value => {
       this.getSubstate(propertyName).next(value);
     });
-    this.getSubstate(propertyName).pipe(distinctUntilChanged()).subscribe(value => {
-      this.getSubstate(propertyName).next(value);
-    });
+    this.getSubstate(propertyName)
+      .pipe(distinctUntilChanged())
+      .subscribe(value => {
+        connectedProperty.next(value);
+      });
     this.updateHistory(this.state, this.state, `CONNECTED_READ_WRITE ${propertyName}`);
     return connectedProperty;
   }
@@ -84,6 +97,20 @@ export class Store {
     this.state = {};
     this.updateState();
     this.updateHistory(prevState, this.state, 'STATE_EMPTIED');
+  }
+
+  deleteSubState(propertyName: string) {
+    this.getSubstate(propertyName).observers.forEach(observer => observer.complete());
+    this.getSubstate(propertyName).complete();
+    delete this.state[propertyName];
+  }
+
+  getWholeState(): Object {
+    return this.stateSubject.value;
+  }
+
+  getWholeStateAsObservable(): Observable<Object> {
+    return this.stateSubject.asObservable();
   }
 
   private getSubstate(propertyName: string): BehaviorSubject<any> {
