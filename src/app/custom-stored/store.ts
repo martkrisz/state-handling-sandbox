@@ -38,12 +38,16 @@ export class Store {
     this.getWholeStateAsObservable().subscribe(state => {
       let prevData = null;
       Object.keys(state).forEach(property => {
-        state[property].pipe(distinctUntilChanged((prev, curr) => {
-          prevData = prev;
-          return curr === prev;
-        })).subscribe(() => {
-          this.updateHistory(prevData, state[property].value, `SUBSTATE_CHANGED_IN_${property}`);
-        });
+        state[property]
+          .pipe(
+            distinctUntilChanged((prev, curr) => {
+              prevData = prev;
+              return curr === prev;
+            })
+          )
+          .subscribe(() => {
+            this.updateHistory(prevData, state[property].value, `SUBSTATE_CHANGED_IN_${property}`);
+          });
       });
     });
   }
@@ -83,12 +87,14 @@ export class Store {
     return this.getSubstate(propertyName).asObservable();
   }
 
-  detach(propertyName: string) {
+  deleteSubstate(propertyName: string) {
     const prevState = new Object(this.state);
     if (this.state[propertyName]) {
+      this.getSubstate(propertyName).observers.forEach(observer => observer.complete());
+      this.getSubstate(propertyName).complete();
       delete this.state[propertyName];
       this.updateState();
-      this.updateHistory(prevState, this.state, `DETACHED ${propertyName}`);
+      this.updateHistory(prevState, this.state, `SUBSTATE ${propertyName} DELETED`);
     }
   }
 
@@ -97,12 +103,6 @@ export class Store {
     this.state = {};
     this.updateState();
     this.updateHistory(prevState, this.state, 'STATE_EMPTIED');
-  }
-
-  deleteSubState(propertyName: string) {
-    this.getSubstate(propertyName).observers.forEach(observer => observer.complete());
-    this.getSubstate(propertyName).complete();
-    delete this.state[propertyName];
   }
 
   getWholeState(): Object {
