@@ -4,6 +4,12 @@
   <div class="box box--red" *ngIf="!(isLoggedIn$ | async)">Logged out</div>
   <div class="box box--green" *ngIf="(isLoggedInReadonly$ | async)">Logged in readonly</div>
   <div class="box box--red" *ngIf="!(isLoggedInReadonly$ | async)">Logged out<br> readonly</div>
+  <div class="box box--green" *ngIf="(isLoggedInByAccessor$ | async)">Logged in accessor</div>
+  <div class="box box--red" *ngIf="!(isLoggedInByAccessor$ | async)">Logged out<br> accessor</div>
 </div>
-<button (click)="login()">Login</button>
-<button (click)="logout()">Logout</button>
+<div class="buttons">
+  <button (click)="login()">Login</button>
+  <button (click)="logout()">Logout</button>
+  <button (click)="loginWithAccessor()">Login with accessor</button>
+  <button (click)="logoutWithAccessor()">Logout with accessor</button>
+</div>

@@ -1,0 +1,12 @@
+{
+  "name": "B-Hive history extension",
+  "version": "1.0",
+  "description": "Önlab 2",
+  "permissions": ["tabs", "activeTab", "storage"],
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
+  "manifest_version": 2,
+  "devtools_page": "devtools.html"
+}

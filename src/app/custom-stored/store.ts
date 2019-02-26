@@ -1,5 +1,4 @@
 import { BehaviorSubject, Observable } from 'rxjs';
-import { Injectable } from '@angular/core';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 
@@ -17,7 +16,6 @@ class HistoryFragment {
   }
 }
 
-@Injectable()
 export class Store {
   private state: Object;
   private stateSubject: BehaviorSubject<Object>;
@@ -52,13 +50,13 @@ export class Store {
     });
   }
 
-  register(propertyName: string, property) {
+  register(propertyName: string) {
     const prevState = new Object(this.state);
     if (!this.state[propertyName]) {
-      const newProperty = new BehaviorSubject<typeof property>(property);
+      const newProperty = new BehaviorSubject<any>(null);
       this.state[propertyName] = newProperty;
-      this.updateState();
       this.updateHistory(prevState, this.state, `REGISTERED ${propertyName}`);
+      this.updateState();
     } else {
       this.updateHistory(
         prevState,
@@ -68,8 +66,14 @@ export class Store {
     }
   }
 
-  connect(propertyName: string, property): BehaviorSubject<typeof property> {
-    const connectedProperty = new BehaviorSubject<typeof property>(property);
+  connect(propertyName: string): BehaviorSubject<any> {
+    const prevState = new Object(this.state);
+    const connectedProperty = new BehaviorSubject<any>(null);
+    if (!this.state[propertyName]) {
+      this.state[propertyName] = connectedProperty;
+      this.updateHistory(prevState, this.state, `REGISTERED ${propertyName}`);
+      this.updateState();
+    }
     connectedProperty.pipe(distinctUntilChanged()).subscribe(value => {
       this.getSubstate(propertyName).next(value);
     });
@@ -82,7 +86,14 @@ export class Store {
     return connectedProperty;
   }
 
-  connectAsReadonly(propertyName: string, property): Observable<typeof property> {
+  connectAsReadonly(propertyName: string): Observable<any> {
+    const prevState = new Object(this.state);
+    const connectedProperty = new BehaviorSubject<any>(null);
+    if (!this.state[propertyName]) {
+      this.state[propertyName] = connectedProperty;
+      this.updateHistory(prevState, this.state, `REGISTERED ${propertyName}`);
+      this.updateState();
+    }
     this.updateHistory(this.state, this.state, `CONNECTED_READONLY ${propertyName}`);
     return this.getSubstate(propertyName).asObservable();
   }
@@ -113,8 +124,31 @@ export class Store {
     return this.stateSubject.asObservable();
   }
 
-  private getSubstate(propertyName: string): BehaviorSubject<any> {
+  getSubstate(propertyName: string): BehaviorSubject<any> {
     return this.state[propertyName];
+  }
+
+  getSubstateAsObservable(propertyName: string): Observable<any> {
+    return this.getSubstate(propertyName).asObservable();
+  }
+
+  getSubStateWithAccessor(accessor: Function): BehaviorSubject<any> {
+    const propertyArray = accessor.toString().split('.');
+    propertyArray.shift();
+    propertyArray[propertyArray.length - 1] = propertyArray[propertyArray.length - 1].replace('; }', '');
+    return accessor(this.state);
+  }
+
+  getSubStateWithAccessorAsReadonly(accessor: Function): Observable<any> {
+    return this.getSubStateWithAccessor(accessor).asObservable();
+  }
+
+  getHistory(): BehaviorSubject<HistoryFragment[]> {
+    return this.history$;
+  }
+
+  getHistoryPromisified(): Promise<HistoryFragment[]> {
+    return this.history$.toPromise();
   }
 
   private updateState() {
@@ -126,3 +160,4 @@ export class Store {
     this.history$.next(this.history);
   }
 }
+

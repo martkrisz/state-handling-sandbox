@@ -1,6 +1,6 @@
-import { Store } from './store';
 import { Component, OnInit } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { connect, connectByAccessor, register } from './store-helper.service';
 
 @Component({
   selector: 'app-custom-stored',
@@ -8,17 +8,16 @@ import { BehaviorSubject, Observable } from 'rxjs';
   styleUrls: ['./custom-stored.component.scss']
 })
 export class CustomStoredComponent implements OnInit {
+  @connect()
   isLoggedIn$: BehaviorSubject<any>;
+  @connect('isLoggedIn$', true)
   isLoggedInReadonly$: Observable<any>;
-  constructor(private store: Store) {
-    this.isLoggedIn$ = new BehaviorSubject<any>(false);
-  }
+  @connectByAccessor(store => store.isLoggedIn$)
+  isLoggedInByAccessor$: BehaviorSubject<any>;
 
-  ngOnInit() {
-    this.store.register('isLoggedIn', this.isLoggedIn$.value);
-    this.isLoggedIn$ = this.store.connect('isLoggedIn', this.isLoggedIn$.value);
-    this.isLoggedInReadonly$ = this.store.connectAsReadonly('isLoggedIn', this.isLoggedIn$.value);
-  }
+  constructor() {}
+
+  ngOnInit() {}
 
   login() {
     this.isLoggedIn$.next(true);
@@ -26,5 +25,13 @@ export class CustomStoredComponent implements OnInit {
 
   logout() {
     this.isLoggedIn$.next(false);
+  }
+
+  loginWithAccessor() {
+    this.isLoggedInByAccessor$.next(true);
+  }
+
+  logoutWithAccessor() {
+    this.isLoggedInByAccessor$.next(false);
   }
 }
