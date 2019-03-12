@@ -4,10 +4,10 @@ import { Store } from './store';
 @Injectable({
   providedIn: 'root'
 })
-export class StoreHelperService {
-  public static store: Store = new Store();
+export class StoreHelperService<T> {
+  public static store = new Store();
 
-  constructor() {}
+  constructor() { }
 }
 
 export function getHistoryPromisified(): Promise<any[]> {
@@ -18,7 +18,7 @@ export function connect(path?: string, readonly?: boolean): PropertyDecorator {
   return decorate(path, readonly);
 }
 
-export function connectByAccessor(accessor: Function, readonly?: boolean): PropertyDecorator {
+export function connectByAccessor(accessor: (<T>(store) => any), readonly ?: boolean): PropertyDecorator {
   return decorateWithAccessor(accessor, readonly);
 }
 
@@ -64,4 +64,8 @@ function decorateForRegister(path?: string): PropertyDecorator {
   return function decorator(target: any, key: string): void {
     StoreHelperService.store.register(path ? path.toString() : key.toString());
   };
+}
+
+function getTemplateParameter() {
+  return typeof StoreHelperService.store;
 }

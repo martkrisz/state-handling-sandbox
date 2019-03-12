@@ -16,16 +16,16 @@ class HistoryFragment {
   }
 }
 
-export class Store {
-  private state: Object;
-  private stateSubject: BehaviorSubject<Object>;
+export class Store<T> {
+  private state: T;
+  private stateSubject: BehaviorSubject<T>;
   private history: HistoryFragment[];
   private history$: BehaviorSubject<HistoryFragment[]>;
 
   constructor() {
-    this.state = {};
+    this.state = <T>new Object();
     this.history = [];
-    this.stateSubject = new BehaviorSubject<Object>(this.state);
+    this.stateSubject = new BehaviorSubject<T>(this.state);
     this.history$ = new BehaviorSubject<HistoryFragment[]>(this.history);
     this.history$.subscribe(history => {
       if (!environment.production && history.length) {
@@ -67,13 +67,7 @@ export class Store {
   }
 
   connect(propertyName: string): BehaviorSubject<any> {
-    const prevState = new Object(this.state);
     const connectedProperty = new BehaviorSubject<any>(null);
-    if (!this.state[propertyName]) {
-      this.state[propertyName] = connectedProperty;
-      this.updateHistory(prevState, this.state, `REGISTERED ${propertyName}`);
-      this.updateState();
-    }
     connectedProperty.pipe(distinctUntilChanged()).subscribe(value => {
       this.getSubstate(propertyName).next(value);
     });
@@ -87,14 +81,8 @@ export class Store {
   }
 
   connectAsReadonly(propertyName: string): Observable<any> {
-    const prevState = new Object(this.state);
-    const connectedProperty = new BehaviorSubject<any>(null);
-    if (!this.state[propertyName]) {
-      this.state[propertyName] = connectedProperty;
-      this.updateHistory(prevState, this.state, `REGISTERED ${propertyName}`);
-      this.updateState();
-    }
     this.updateHistory(this.state, this.state, `CONNECTED_READONLY ${propertyName}`);
+    console.log(typeof this.state);
     return this.getSubstate(propertyName).asObservable();
   }
 
@@ -111,7 +99,7 @@ export class Store {
 
   emptyState() {
     const prevState = new Object(this.state);
-    this.state = {};
+    this.state = null;
     this.updateState();
     this.updateHistory(prevState, this.state, 'STATE_EMPTIED');
   }

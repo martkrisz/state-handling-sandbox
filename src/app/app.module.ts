@@ -13,6 +13,7 @@ import { environment } from 'src/environments/environment.prod';
 import { rootReducer } from './redux-stored/reducers/core.reducer';
 import { CustomStoredComponent } from './custom-stored/custom-stored.component';
 import { StoreHelperService } from './custom-stored/store-helper.service';
+import { ExampleInterface } from './custom-stored/example-interface';
 
 @NgModule({
   declarations: [
@@ -32,7 +33,7 @@ import { StoreHelperService } from './custom-stored/store-helper.service';
 })
 export class AppModule {
 
-  constructor(ngRedux: NgRedux<{}>, private devTools: DevToolsExtension, private storeHelperService: StoreHelperService) {
+  constructor(ngRedux: NgRedux<{}>, private devTools: DevToolsExtension, private storeHelperService: StoreHelperService<ExampleInterface>) {
     let enhancers = new Array<any>();
 
     if (!environment.production && devTools.isEnabled()) {

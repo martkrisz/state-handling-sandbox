@@ -9,6 +9,7 @@ import { connect, connectByAccessor, register } from './store-helper.service';
 })
 export class CustomStoredComponent implements OnInit {
   @connect()
+  @register()
   isLoggedIn$: BehaviorSubject<any>;
   @connect('isLoggedIn$', true)
   isLoggedInReadonly$: Observable<any>;
