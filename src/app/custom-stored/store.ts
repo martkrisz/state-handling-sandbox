@@ -16,16 +16,16 @@ class HistoryFragment {
   }
 }
 
-export class Store<T> {
-  private state: T;
-  private stateSubject: BehaviorSubject<T>;
+export class Store {
+  private state: Object;
+  private stateSubject: BehaviorSubject<Object>;
   private history: HistoryFragment[];
   private history$: BehaviorSubject<HistoryFragment[]>;
 
   constructor() {
-    this.state = <T>new Object();
+    this.state = new Object();
     this.history = [];
-    this.stateSubject = new BehaviorSubject<T>(this.state);
+    this.stateSubject = new BehaviorSubject<Object>(this.state);
     this.history$ = new BehaviorSubject<HistoryFragment[]>(this.history);
     this.history$.subscribe(history => {
       if (!environment.production && history.length) {
@@ -50,11 +50,29 @@ export class Store<T> {
     });
   }
 
-  register(propertyName: string) {
+  register(propertyPath: string[]) {
     const prevState = new Object(this.state);
-    if (!this.state[propertyName]) {
+    let propertyName = '';
+    let tempState = null;
+    if (propertyPath.length === 1) {
+      propertyName = propertyPath[0];
+      tempState = this.state;
+    } else {
+      for (let index = 0; index < propertyPath.length; ++index) {
+        if (index < propertyPath.length - 1) {
+          tempState = this.state[propertyPath[index]];
+        }
+        if (tempState === undefined) {
+          return;
+        }
+        if (index === propertyPath.length - 1) {
+          propertyName = propertyPath[index];
+        }
+      }
+    }
+    if (!tempState[propertyName]) {
       const newProperty = new BehaviorSubject<any>(null);
-      this.state[propertyName] = newProperty;
+      tempState[propertyName] = newProperty;
       this.updateHistory(prevState, this.state, `REGISTERED ${propertyName}`);
       this.updateState();
     } else {
@@ -82,7 +100,6 @@ export class Store<T> {
 
   connectAsReadonly(propertyName: string): Observable<any> {
     this.updateHistory(this.state, this.state, `CONNECTED_READONLY ${propertyName}`);
-    console.log(typeof this.state);
     return this.getSubstate(propertyName).asObservable();
   }
 
@@ -120,14 +137,11 @@ export class Store<T> {
     return this.getSubstate(propertyName).asObservable();
   }
 
-  getSubStateWithAccessor(accessor: Function): BehaviorSubject<any> {
-    const propertyArray = accessor.toString().split('.');
-    propertyArray.shift();
-    propertyArray[propertyArray.length - 1] = propertyArray[propertyArray.length - 1].replace('; }', '');
+  getSubStateWithAccessor(accessor: ((store) => any)): BehaviorSubject<any> {
     return accessor(this.state);
   }
 
-  getSubStateWithAccessorAsReadonly(accessor: Function): Observable<any> {
+  getSubStateWithAccessorAsReadonly(accessor: ((store) => any)): Observable<any> {
     return this.getSubStateWithAccessor(accessor).asObservable();
   }
 

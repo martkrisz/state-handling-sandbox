@@ -18,15 +18,18 @@ export function connect(path?: string, readonly?: boolean): PropertyDecorator {
   return decorate(path, readonly);
 }
 
-export function connectByAccessor(accessor: (<T>(store) => any), readonly ?: boolean): PropertyDecorator {
+export function connectByAccessor(accessor: ((store) => any), readonly ?: boolean): PropertyDecorator {
   return decorateWithAccessor(accessor, readonly);
 }
 
-export function register(path?: string): PropertyDecorator {
+export function register(path?: string[] | string): PropertyDecorator {
+  if (typeof path === 'string') {
+    return decorateForRegister(path.split('.'));
+  }
   return decorateForRegister(path);
 }
 
-function decorateWithAccessor(accessor: Function, readonly?: boolean): PropertyDecorator {
+function decorateWithAccessor(accessor: ((store) => any), readonly?: boolean): PropertyDecorator {
   return function decorator(target: any, key: string): void {
     function getter() {
       const value = readonly
@@ -60,12 +63,8 @@ function decorate(path?: string, readonly?: boolean): PropertyDecorator {
   };
 }
 
-function decorateForRegister(path?: string): PropertyDecorator {
+function decorateForRegister(path?: string[]): PropertyDecorator {
   return function decorator(target: any, key: string): void {
-    StoreHelperService.store.register(path ? path.toString() : key.toString());
+    StoreHelperService.store.register(path ? path : [key.toString()]);
   };
-}
-
-function getTemplateParameter() {
-  return typeof StoreHelperService.store;
 }

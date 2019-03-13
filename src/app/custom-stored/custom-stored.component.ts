@@ -8,13 +8,24 @@ import { connect, connectByAccessor, register } from './store-helper.service';
   styleUrls: ['./custom-stored.component.scss']
 })
 export class CustomStoredComponent implements OnInit {
+
   @connect()
   @register()
-  isLoggedIn$: BehaviorSubject<any>;
+  auth$: BehaviorSubject<Object>;
+
+  @register(['auth$', 'isLoggedIn'])
+  @connectByAccessor(store => store.auth$.isLoggedIn)
+  isLoggedIn: BehaviorSubject<Boolean>;
+
+  @connect()
+  @register()
+  isLoggedIn$: BehaviorSubject<Boolean>;
+
   @connect('isLoggedIn$', true)
-  isLoggedInReadonly$: Observable<any>;
+  isLoggedInReadonly$: Observable<Boolean>;
+
   @connectByAccessor(store => store.isLoggedIn$)
-  isLoggedInByAccessor$: BehaviorSubject<any>;
+  isLoggedInByAccessor$: BehaviorSubject<Boolean>;
 
   constructor() {}
 
@@ -34,5 +45,13 @@ export class CustomStoredComponent implements OnInit {
 
   logoutWithAccessor() {
     this.isLoggedInByAccessor$.next(false);
+  }
+
+  loginNested() {
+    this.isLoggedIn.next(true);
+  }
+
+  logoutNested() {
+    this.isLoggedIn.next(false);
   }
 }
