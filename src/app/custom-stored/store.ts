@@ -72,20 +72,18 @@ export class Store {
     }
     if (!tempState[propertyName]) {
       const newProperty = new BehaviorSubject<any>(null);
+      propertyName = this.padWith$(propertyName);
       tempState[propertyName] = newProperty;
       this.updateHistory(prevState, this.state, `REGISTERED ${propertyName}`);
       this.updateState();
     } else {
-      this.updateHistory(
-        prevState,
-        this.state,
-        `REGISTRATION_ATTEMPT_ALREADY_REGISTERED ${propertyName}`
-      );
+      this.updateHistory(prevState, this.state, `REGISTRATION_ATTEMPT_ALREADY_REGISTERED ${propertyName}`);
     }
   }
 
   connect(propertyName: string): BehaviorSubject<any> {
     const connectedProperty = new BehaviorSubject<any>(null);
+    propertyName = this.padWith$(propertyName);
     connectedProperty.pipe(distinctUntilChanged()).subscribe(value => {
       this.getSubstate(propertyName).next(value);
     });
@@ -137,11 +135,11 @@ export class Store {
     return this.getSubstate(propertyName).asObservable();
   }
 
-  getSubStateWithAccessor(accessor: ((store) => any)): BehaviorSubject<any> {
+  getSubStateWithAccessor(accessor: (store) => any): BehaviorSubject<any> {
     return accessor(this.state);
   }
 
-  getSubStateWithAccessorAsReadonly(accessor: ((store) => any)): Observable<any> {
+  getSubStateWithAccessorAsReadonly(accessor: (store) => any): Observable<any> {
     return this.getSubStateWithAccessor(accessor).asObservable();
   }
 
@@ -157,9 +155,16 @@ export class Store {
     this.stateSubject.next(this.state);
   }
 
-  private updateHistory(prevState: any, nextState: any, causingEvent: string) {
+  private padWith$(propertyName: string): string {
+    if (propertyName.charAt(propertyName.length - 1) !== '$') {
+      return propertyName.padEnd(propertyName.length + 1, '$');
+    } else {
+      return propertyName;
+    }
+  }
+
+  updateHistory(prevState: any, nextState: any, causingEvent: string) {
     this.history.push(new HistoryFragment(prevState, nextState, causingEvent));
     this.history$.next(this.history);
   }
 }
-

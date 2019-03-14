@@ -13,15 +13,18 @@ export class CustomStoredComponent implements OnInit {
   @register()
   auth$: BehaviorSubject<Object>;
 
+  @connectByAccessor(store => store.auth$.isLoggedIn$)
   @register(['auth$', 'isLoggedIn'])
-  @connectByAccessor(store => store.auth$.isLoggedIn)
   isLoggedIn: BehaviorSubject<Boolean>;
 
   @connect()
   @register()
   isLoggedIn$: BehaviorSubject<Boolean>;
 
-  @connect('isLoggedIn$', true)
+  @connect(
+    'isLoggedIn$',
+    true
+  )
   isLoggedInReadonly$: Observable<Boolean>;
 
   @connectByAccessor(store => store.isLoggedIn$)

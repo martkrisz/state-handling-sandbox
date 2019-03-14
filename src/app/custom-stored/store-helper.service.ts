@@ -57,7 +57,7 @@ function decorate(path?: string, readonly?: boolean): PropertyDecorator {
 
     if (delete target[key]) {
       Object.defineProperty(target, key, {
-        value: getter()
+        value: getter(),
       });
     }
   };
