@@ -1,5 +1,4 @@
 import { BehaviorSubject, Observable } from 'rxjs';
-import { Injectable } from '@angular/core';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 
@@ -17,7 +16,6 @@ class HistoryFragment {
   }
 }
 
-@Injectable()
 export class Store {
   private state: Object;
   private stateSubject: BehaviorSubject<Object>;
@@ -25,7 +23,7 @@ export class Store {
   private history$: BehaviorSubject<HistoryFragment[]>;
 
   constructor() {
-    this.state = {};
+    this.state = new Object();
     this.history = [];
     this.stateSubject = new BehaviorSubject<Object>(this.state);
     this.history$ = new BehaviorSubject<HistoryFragment[]>(this.history);
@@ -38,23 +36,45 @@ export class Store {
     this.getWholeStateAsObservable().subscribe(state => {
       let prevData = null;
       Object.keys(state).forEach(property => {
-        state[property].pipe(distinctUntilChanged((prev, curr) => {
-          prevData = prev;
-          return curr === prev;
-        })).subscribe(() => {
-          this.updateHistory(prevData, state[property].value, `SUBSTATE_CHANGED_IN_${property}`);
-        });
+        state[property]
+          .pipe(
+            distinctUntilChanged((prev, curr) => {
+              prevData = prev;
+              return curr === prev;
+            })
+          )
+          .subscribe(() => {
+            this.updateHistory(prevData, state[property].value, `SUBSTATE_CHANGED_IN_${property}`);
+          });
       });
     });
   }
 
-  register(propertyName: string, property) {
+  register(propertyPath: string[]) {
     const prevState = new Object(this.state);
-    if (!this.state[propertyName]) {
-      const newProperty = new BehaviorSubject<typeof property>(property);
-      this.state[propertyName] = newProperty;
-      this.updateState();
+    let propertyName = '';
+    let tempState = null;
+    if (propertyPath.length === 1) {
+      propertyName = propertyPath[0];
+      tempState = this.state;
+    } else {
+      for (let index = 0; index < propertyPath.length; ++index) {
+        if (index < propertyPath.length - 1) {
+          tempState = this.state[propertyPath[index]];
+        }
+        if (tempState === undefined) {
+          return;
+        }
+        if (index === propertyPath.length - 1) {
+          propertyName = propertyPath[index];
+        }
+      }
+    }
+    if (!tempState[propertyName]) {
+      const newProperty = new BehaviorSubject<any>(null);
+      tempState[propertyName] = newProperty;
       this.updateHistory(prevState, this.state, `REGISTERED ${propertyName}`);
+      this.updateState();
     } else {
       this.updateHistory(
         prevState,
@@ -64,8 +84,8 @@ export class Store {
     }
   }
 
-  connect(propertyName: string, property): BehaviorSubject<typeof property> {
-    const connectedProperty = new BehaviorSubject<typeof property>(property);
+  connect(propertyName: string): BehaviorSubject<any> {
+    const connectedProperty = new BehaviorSubject<any>(null);
     connectedProperty.pipe(distinctUntilChanged()).subscribe(value => {
       this.getSubstate(propertyName).next(value);
     });
@@ -78,31 +98,27 @@ export class Store {
     return connectedProperty;
   }
 
-  connectAsReadonly(propertyName: string, property): Observable<typeof property> {
+  connectAsReadonly(propertyName: string): Observable<any> {
     this.updateHistory(this.state, this.state, `CONNECTED_READONLY ${propertyName}`);
     return this.getSubstate(propertyName).asObservable();
   }
 
-  detach(propertyName: string) {
+  deleteSubstate(propertyName: string) {
     const prevState = new Object(this.state);
     if (this.state[propertyName]) {
+      this.getSubstate(propertyName).observers.forEach(observer => observer.complete());
+      this.getSubstate(propertyName).complete();
       delete this.state[propertyName];
       this.updateState();
-      this.updateHistory(prevState, this.state, `DETACHED ${propertyName}`);
+      this.updateHistory(prevState, this.state, `SUBSTATE ${propertyName} DELETED`);
     }
   }
 
   emptyState() {
     const prevState = new Object(this.state);
-    this.state = {};
+    this.state = null;
     this.updateState();
     this.updateHistory(prevState, this.state, 'STATE_EMPTIED');
-  }
-
-  deleteSubState(propertyName: string) {
-    this.getSubstate(propertyName).observers.forEach(observer => observer.complete());
-    this.getSubstate(propertyName).complete();
-    delete this.state[propertyName];
   }
 
   getWholeState(): Object {
@@ -113,8 +129,28 @@ export class Store {
     return this.stateSubject.asObservable();
   }
 
-  private getSubstate(propertyName: string): BehaviorSubject<any> {
+  getSubstate(propertyName: string): BehaviorSubject<any> {
     return this.state[propertyName];
+  }
+
+  getSubstateAsObservable(propertyName: string): Observable<any> {
+    return this.getSubstate(propertyName).asObservable();
+  }
+
+  getSubStateWithAccessor(accessor: ((store) => any)): BehaviorSubject<any> {
+    return accessor(this.state);
+  }
+
+  getSubStateWithAccessorAsReadonly(accessor: ((store) => any)): Observable<any> {
+    return this.getSubStateWithAccessor(accessor).asObservable();
+  }
+
+  getHistory(): BehaviorSubject<HistoryFragment[]> {
+    return this.history$;
+  }
+
+  getHistoryPromisified(): Promise<HistoryFragment[]> {
+    return this.history$.toPromise();
   }
 
   private updateState() {
@@ -126,3 +162,4 @@ export class Store {
     this.history$.next(this.history);
   }
 }
+

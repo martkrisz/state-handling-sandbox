@@ -1,6 +1,6 @@
-import { Store } from './store';
 import { Component, OnInit } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { connect, connectByAccessor, register } from './store-helper.service';
 
 @Component({
   selector: 'app-custom-stored',
@@ -8,17 +8,28 @@ import { BehaviorSubject, Observable } from 'rxjs';
   styleUrls: ['./custom-stored.component.scss']
 })
 export class CustomStoredComponent implements OnInit {
-  isLoggedIn$: BehaviorSubject<any>;
-  isLoggedInReadonly$: Observable<any>;
-  constructor(private store: Store) {
-    this.isLoggedIn$ = new BehaviorSubject<any>(false);
-  }
 
-  ngOnInit() {
-    this.store.register('isLoggedIn', this.isLoggedIn$.value);
-    this.isLoggedIn$ = this.store.connect('isLoggedIn', this.isLoggedIn$.value);
-    this.isLoggedInReadonly$ = this.store.connectAsReadonly('isLoggedIn', this.isLoggedIn$.value);
-  }
+  @connect()
+  @register()
+  auth$: BehaviorSubject<Object>;
+
+  @register(['auth$', 'isLoggedIn'])
+  @connectByAccessor(store => store.auth$.isLoggedIn)
+  isLoggedIn: BehaviorSubject<Boolean>;
+
+  @connect()
+  @register()
+  isLoggedIn$: BehaviorSubject<Boolean>;
+
+  @connect('isLoggedIn$', true)
+  isLoggedInReadonly$: Observable<Boolean>;
+
+  @connectByAccessor(store => store.isLoggedIn$)
+  isLoggedInByAccessor$: BehaviorSubject<Boolean>;
+
+  constructor() {}
+
+  ngOnInit() {}
 
   login() {
     this.isLoggedIn$.next(true);
@@ -26,5 +37,21 @@ export class CustomStoredComponent implements OnInit {
 
   logout() {
     this.isLoggedIn$.next(false);
+  }
+
+  loginWithAccessor() {
+    this.isLoggedInByAccessor$.next(true);
+  }
+
+  logoutWithAccessor() {
+    this.isLoggedInByAccessor$.next(false);
+  }
+
+  loginNested() {
+    this.isLoggedIn.next(true);
+  }
+
+  logoutNested() {
+    this.isLoggedIn.next(false);
   }
 }

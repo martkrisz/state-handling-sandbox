@@ -11,6 +11,8 @@ import { select } from '@angular-redux/store';
 export class ReduxStoredComponent implements OnInit {
   @select(['auth', 'isLoggedIn'])
   isLoggedIn$: Observable<boolean>;
+  @select(['auth'])
+  auth: Observable<any>;
 
   constructor(private authActions: AuthActions) { }
 

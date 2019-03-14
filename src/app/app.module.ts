@@ -1,4 +1,3 @@
-import { Store } from './custom-stored/store';
 import { FormsModule } from '@angular/forms';
 import { AuthActions } from './redux-stored/actions/auth.action';
 import { BrowserModule } from '@angular/platform-browser';
@@ -9,21 +8,19 @@ import { createLogger } from 'redux-logger';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { HomeComponent } from './home/home.component';
-import { ServiceStoredComponent } from './service-stored/service-stored.component';
 import { ReduxStoredComponent } from './redux-stored/redux-stored.component';
 import { environment } from 'src/environments/environment.prod';
 import { rootReducer } from './redux-stored/reducers/core.reducer';
 import { CustomStoredComponent } from './custom-stored/custom-stored.component';
-import { TwoWayPocComponent } from './two-way-poc/two-way-poc.component';
+import { StoreHelperService } from './custom-stored/store-helper.service';
+import { ExampleInterface } from './custom-stored/example-interface';
 
 @NgModule({
   declarations: [
     AppComponent,
     HomeComponent,
-    ServiceStoredComponent,
     ReduxStoredComponent,
-    CustomStoredComponent,
-    TwoWayPocComponent
+    CustomStoredComponent
   ],
   imports: [
     BrowserModule,
@@ -31,11 +28,12 @@ import { TwoWayPocComponent } from './two-way-poc/two-way-poc.component';
     NgReduxModule,
     FormsModule
   ],
-  providers: [AuthActions, Store],
+  providers: [AuthActions, StoreHelperService],
   bootstrap: [AppComponent]
 })
 export class AppModule {
-  constructor(ngRedux: NgRedux<{}>, private devTools: DevToolsExtension) {
+
+  constructor(ngRedux: NgRedux<{}>, private devTools: DevToolsExtension, private storeHelperService: StoreHelperService<ExampleInterface>) {
     let enhancers = new Array<any>();
 
     if (!environment.production && devTools.isEnabled()) {
