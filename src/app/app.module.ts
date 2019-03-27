@@ -12,8 +12,7 @@ import { ReduxStoredComponent } from './redux-stored/redux-stored.component';
 import { environment } from 'src/environments/environment.prod';
 import { rootReducer } from './redux-stored/reducers/core.reducer';
 import { CustomStoredComponent } from './custom-stored/custom-stored.component';
-import { StoreHelperService } from './custom-stored/store-helper.service';
-import { ExampleInterface } from './custom-stored/example-interface';
+import { InjectableStoreService } from './custom-stored/injectable-store.service';
 
 @NgModule({
   declarations: [
@@ -28,12 +27,12 @@ import { ExampleInterface } from './custom-stored/example-interface';
     NgReduxModule,
     FormsModule
   ],
-  providers: [AuthActions, StoreHelperService],
+  providers: [AuthActions, InjectableStoreService],
   bootstrap: [AppComponent]
 })
 export class AppModule {
 
-  constructor(ngRedux: NgRedux<{}>, private devTools: DevToolsExtension, private storeHelperService: StoreHelperService<ExampleInterface>) {
+  constructor(ngRedux: NgRedux<{}>, private devTools: DevToolsExtension) {
     let enhancers = new Array<any>();
 
     if (!environment.production && devTools.isEnabled()) {

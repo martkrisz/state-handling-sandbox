@@ -1,32 +1,20 @@
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Node } from './node';
+import { HistoryFragment } from './history-fragment';
+import { Observable } from 'rxjs';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 
-class HistoryFragment {
-  prevState: any;
-  nextState: any;
-  timeStamp: Date;
-  causingEvent: string;
-
-  constructor(prevState: any, nextState: any, causingEvent: string) {
-    this.prevState = prevState;
-    this.nextState = nextState;
-    this.timeStamp = new Date();
-    this.causingEvent = causingEvent;
-  }
-}
-
-export class Store {
-  private state: Object;
-  private stateSubject: BehaviorSubject<Object>;
+export class Store<T extends Object = any> {
+  private state: T;
+  private state$: Node<T>;
   private history: HistoryFragment[];
-  private history$: BehaviorSubject<HistoryFragment[]>;
+  private history$: Node<HistoryFragment[]>;
 
   constructor() {
-    this.state = new Object();
+    this.state = <T>{};
     this.history = [];
-    this.stateSubject = new BehaviorSubject<Object>(this.state);
-    this.history$ = new BehaviorSubject<HistoryFragment[]>(this.history);
+    this.state$ = new Node<T>(this.state, null, 'state$');
+    this.history$ = new Node<HistoryFragment[]>(this.history, null, 'history$');
     this.history$.subscribe(history => {
       if (!environment.production && history.length) {
         console.log(history[history.length - 1]);
@@ -71,9 +59,13 @@ export class Store {
       }
     }
     if (!tempState[propertyName]) {
-      const newProperty = new BehaviorSubject<any>(null);
       propertyName = this.padWith$(propertyName);
-      tempState[propertyName] = newProperty;
+      const newProperty = new Node<any>(null, tempState, propertyName);
+      Object.defineProperty(tempState, propertyName, {
+        enumerable: true,
+        configurable: true,
+        value: newProperty
+      });
       this.updateHistory(prevState, this.state, `REGISTERED ${propertyName}`);
       this.updateState();
     } else {
@@ -81,9 +73,9 @@ export class Store {
     }
   }
 
-  connect(propertyName: string): BehaviorSubject<any> {
-    const connectedProperty = new BehaviorSubject<any>(null);
+  connect(propertyName: string): Node<any> {
     propertyName = this.padWith$(propertyName);
+    const connectedProperty = new Node<any>(null, this.getSubstate(propertyName));
     connectedProperty.pipe(distinctUntilChanged()).subscribe(value => {
       this.getSubstate(propertyName).next(value);
     });
@@ -120,14 +112,14 @@ export class Store {
   }
 
   getWholeState(): Object {
-    return this.stateSubject.value;
+    return this.state$.value;
   }
 
   getWholeStateAsObservable(): Observable<Object> {
-    return this.stateSubject.asObservable();
+    return this.state$.asObservable();
   }
 
-  getSubstate(propertyName: string): BehaviorSubject<any> {
+  getSubstate(propertyName: string): Node<any> {
     return this.state[propertyName];
   }
 
@@ -135,7 +127,7 @@ export class Store {
     return this.getSubstate(propertyName).asObservable();
   }
 
-  getSubStateWithAccessor(accessor: (store) => any): BehaviorSubject<any> {
+  getSubStateWithAccessor(accessor: (store) => any): Node<any> {
     return accessor(this.state);
   }
 
@@ -143,7 +135,7 @@ export class Store {
     return this.getSubStateWithAccessor(accessor).asObservable();
   }
 
-  getHistory(): BehaviorSubject<HistoryFragment[]> {
+  getHistory(): Node<HistoryFragment[]> {
     return this.history$;
   }
 
@@ -152,7 +144,7 @@ export class Store {
   }
 
   private updateState() {
-    this.stateSubject.next(this.state);
+    this.state$.next(this.state);
   }
 
   private padWith$(propertyName: string): string {
@@ -163,8 +155,68 @@ export class Store {
     }
   }
 
-  updateHistory(prevState: any, nextState: any, causingEvent: string) {
+  private updateHistory(prevState: any, nextState: any, causingEvent: string) {
     this.history.push(new HistoryFragment(prevState, nextState, causingEvent));
     this.history$.next(this.history);
+  }
+
+  private decorateWithAccessor(accessor: (store) => any, readonly?: boolean): PropertyDecorator {
+    const _this = this;
+    return function decorator(target: any, key: string, This = _this): void {
+      function getter() {
+        const value = readonly ? This.getSubStateWithAccessorAsReadonly(accessor) : This.getSubStateWithAccessor(accessor);
+        return value;
+      }
+
+      if (delete target[key]) {
+        Object.defineProperty(target, key, {
+          value: getter(),
+          enumerable: true,
+          configurable: true
+        });
+      }
+    };
+  }
+
+  private decorate(path?: string, readonly?: boolean): PropertyDecorator {
+    const _this = this;
+    return function decorator(target: any, key: string, This = _this): void {
+      function getter() {
+        const value = readonly
+          ? This.connectAsReadonly(path ? path.toString() : key.toString())
+          : This.connect(path ? path.toString() : key.toString());
+        return value;
+      }
+
+      if (delete target[key]) {
+        Object.defineProperty(target, key, {
+          value: getter(),
+          enumerable: true,
+          configurable: true
+        });
+      }
+    };
+  }
+
+  private decorateForRegister(path?: string[]): PropertyDecorator {
+    const _this = this;
+    return function decorator(target: any, key: string, This = _this): void {
+      This.register(path ? path : [key.toString()]);
+    };
+  }
+
+  public Connect(path?: string, readonly?: boolean): PropertyDecorator {
+    return this.decorate(path, readonly);
+  }
+
+  public ConnectByAccessor(accessor: (store: T) => any, readonly?: boolean): PropertyDecorator {
+    return this.decorateWithAccessor(accessor, readonly);
+  }
+
+  public Register(path?: string[] | string): PropertyDecorator {
+    if (typeof path === 'string') {
+      return this.decorateForRegister(path.split('.'));
+    }
+    return this.decorateForRegister(path);
   }
 }
