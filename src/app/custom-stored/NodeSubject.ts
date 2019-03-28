@@ -1,9 +1,9 @@
-import { BehaviorSubject, of } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 
 export class NodeSubject<T> extends BehaviorSubject<T> {
-
   private propertyName: string;
   public children: any;
+  public children$: BehaviorSubject<any>;
   public parent: NodeSubject<any> | null;
 
   constructor(value: T, parentReference, propertyName?: string) {
@@ -11,6 +11,7 @@ export class NodeSubject<T> extends BehaviorSubject<T> {
     this.parent = <NodeSubject<typeof parentReference>>parentReference || null;
     this.propertyName = propertyName || '';
     this.children = {};
+    this.children$ = new BehaviorSubject<any>(this.children);
   }
 
   getChildren() {
@@ -18,7 +19,7 @@ export class NodeSubject<T> extends BehaviorSubject<T> {
   }
 
   getChildrenAsObservable() {
-    return of(this.children);
+    return this.children$.asObservable();
   }
 
   next(value: T): void {
@@ -29,6 +30,13 @@ export class NodeSubject<T> extends BehaviorSubject<T> {
         configurable: true,
         value
       });
+    }
+    if (this.parent) {
+      this.parent.children$.next(this.parent.children);
+    }
+    if (this.propertyName === 'isLoggedIn$' && this.parent.propertyName === 'auth$') {
+      console.log(this.parent.children);
+      console.log(this.parent.children$.value);
     }
   }
 }

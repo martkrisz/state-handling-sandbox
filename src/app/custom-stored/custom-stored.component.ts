@@ -9,15 +9,11 @@ import { Observable } from 'rxjs';
   styleUrls: ['./custom-stored.component.scss']
 })
 export class CustomStoredComponent implements OnInit {
-
   @myStore.Connect()
   @myStore.Register()
   isLoggedIn$: NodeSubject<Boolean>;
 
-  @myStore.Connect(
-    'isLoggedIn$',
-    true
-  )
+  @myStore.Connect('isLoggedIn$', true)
   isLoggedInReadonly$: Observable<Boolean>;
 
   @myStore.ConnectByAccessor(store => store.isLoggedIn$)
@@ -31,9 +27,13 @@ export class CustomStoredComponent implements OnInit {
   @myStore.Register(['auth$', 'isLoggedIn'])
   isLoggedIn: NodeSubject<Boolean>;
 
+  authChildren$: Observable<Object> = this.auth$.getChildrenAsObservable();
+  authChildren: Object = this.auth$.getChildren();
+
   constructor() {}
 
   ngOnInit() {
+    this.authChildren$.subscribe(console.log);
   }
 
   login() {
@@ -54,6 +54,9 @@ export class CustomStoredComponent implements OnInit {
 
   loginNested() {
     this.isLoggedIn.next(true);
+    setTimeout(() => {
+      this.authChildren = this.auth$.getChildren();
+    }, 1000);
   }
 
   logoutNested() {

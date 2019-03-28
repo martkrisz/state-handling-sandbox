@@ -21,4 +21,9 @@ html, body {
   &--red {
     background-color: red;
   }
+
+  &--text {
+    border: grey solid 1px;
+    color: black;
+  }
 }
