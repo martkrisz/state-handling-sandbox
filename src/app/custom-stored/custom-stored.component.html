@@ -8,6 +8,7 @@
   <div class="box box--red" *ngIf="!(isLoggedInByAccessor$ | async)">Logged out<br> accessor</div>
   <div class="box box--green" *ngIf="(isLoggedIn | async)">Logged in nested</div>
   <div class="box box--red" *ngIf="!(isLoggedIn | async)">Logged out nested</div>
+  <div class="box">{{auth$.getChildrenAsObservable() | async | json}}</div>
 </div>
 <div class="buttons">
   <button (click)="login()">Login</button>

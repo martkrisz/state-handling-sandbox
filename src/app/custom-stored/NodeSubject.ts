@@ -1,14 +1,14 @@
 import { BehaviorSubject, of } from 'rxjs';
 
-export class Node<T> extends BehaviorSubject<T> {
+export class NodeSubject<T> extends BehaviorSubject<T> {
 
   private propertyName: string;
   public children: any;
-  public parent: Node<any> | null;
+  public parent: NodeSubject<any> | null;
 
   constructor(value: T, parentReference, propertyName?: string) {
     super(value);
-    this.parent = <Node<typeof parentReference>>parentReference || null;
+    this.parent = <NodeSubject<typeof parentReference>>parentReference || null;
     this.propertyName = propertyName || '';
     this.children = {};
   }
@@ -24,7 +24,11 @@ export class Node<T> extends BehaviorSubject<T> {
   next(value: T): void {
     super.next(value);
     if (this.parent && this.propertyName !== '') {
-      this.parent.children[this.propertyName] = value;
+      Object.defineProperty(this.parent.children, this.propertyName, {
+        enumerable: true,
+        configurable: true,
+        value
+      });
     }
   }
 }

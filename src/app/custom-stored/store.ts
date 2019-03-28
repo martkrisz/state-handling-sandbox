@@ -1,4 +1,4 @@
-import { Node } from './NodeSubject';
+import { NodeSubject } from './NodeSubject';
 import { HistoryFragment } from './HistoryFragment';
 import { Observable } from 'rxjs';
 import { distinctUntilChanged } from 'rxjs/operators';
@@ -6,15 +6,15 @@ import { environment } from 'src/environments/environment';
 
 export class Store<T extends Object = any> {
   private state: T;
-  private state$: Node<T>;
+  private state$: NodeSubject<T>;
   private history: HistoryFragment[];
-  private history$: Node<HistoryFragment[]>;
+  private history$: NodeSubject<HistoryFragment[]>;
 
   constructor() {
     this.state = <T>{};
     this.history = [];
-    this.state$ = new Node<T>(this.state, null, 'state$');
-    this.history$ = new Node<HistoryFragment[]>(this.history, null, 'history$');
+    this.state$ = new NodeSubject<T>(this.state, null, 'state$');
+    this.history$ = new NodeSubject<HistoryFragment[]>(this.history, null, 'history$');
     this.history$.subscribe(history => {
       if (!environment.production && history.length) {
         console.log(history[history.length - 1]);
@@ -35,6 +35,12 @@ export class Store<T extends Object = any> {
             this.updateHistory(prevData, state[property].value, `SUBSTATE_CHANGED_IN_${property}`);
           });
       });
+    });
+    Object.defineProperty(this, 'state', {
+      get: () => this.state$.value
+    });
+    Object.defineProperty(this, 'history', {
+      get: () => this.history$.value
     });
   }
 
@@ -60,7 +66,7 @@ export class Store<T extends Object = any> {
     }
     if (!tempState[propertyName]) {
       propertyName = this.padWith$(propertyName);
-      const newProperty = new Node<any>(null, tempState, propertyName);
+      const newProperty = new NodeSubject<any>(null, tempState, propertyName);
       Object.defineProperty(tempState, propertyName, {
         enumerable: true,
         configurable: true,
@@ -73,9 +79,9 @@ export class Store<T extends Object = any> {
     }
   }
 
-  connect(propertyName: string): Node<any> {
+  connect(propertyName: string): NodeSubject<any> {
     propertyName = this.padWith$(propertyName);
-    const connectedProperty = new Node<any>(null, this.getSubstate(propertyName), propertyName);
+    const connectedProperty = new NodeSubject<any>(null, this.getSubstate(propertyName).parent, propertyName);
     connectedProperty.pipe(distinctUntilChanged()).subscribe(value => {
       this.getSubstate(propertyName).next(value);
     });
@@ -112,15 +118,19 @@ export class Store<T extends Object = any> {
     this.updateHistory(prevState, this.state, 'STATE_EMPTIED');
   }
 
-  getWholeState(): Object {
+  getWholeStateSubject(): NodeSubject<T> {
+    return this.state$;
+  }
+
+  getWholeState(): T {
     return this.state$.value;
   }
 
-  getWholeStateAsObservable(): Observable<Object> {
+  getWholeStateAsObservable(): Observable<T> {
     return this.state$.asObservable();
   }
 
-  getSubstate(propertyName: string): Node<any> {
+  getSubstate(propertyName: string): NodeSubject<any> {
     return this.state$[propertyName];
   }
 
@@ -128,7 +138,7 @@ export class Store<T extends Object = any> {
     return this.getSubstate(propertyName).asObservable();
   }
 
-  getSubStateWithAccessor(accessor: (store) => any): Node<any> {
+  getSubStateWithAccessor(accessor: (store) => any): NodeSubject<any> {
     return accessor(this.state$);
   }
 
@@ -136,7 +146,7 @@ export class Store<T extends Object = any> {
     return this.getSubStateWithAccessor(accessor).asObservable();
   }
 
-  getHistory(): Node<HistoryFragment[]> {
+  getHistory(): NodeSubject<HistoryFragment[]> {
     return this.history$;
   }
 

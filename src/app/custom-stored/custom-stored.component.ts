@@ -1,6 +1,7 @@
+import { NodeSubject } from './NodeSubject';
 import { myStore } from './MyStore';
 import { Component, OnInit } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-custom-stored',
@@ -11,15 +12,7 @@ export class CustomStoredComponent implements OnInit {
 
   @myStore.Connect()
   @myStore.Register()
-  auth$: BehaviorSubject<Object>;
-
-  @myStore.ConnectByAccessor(store => store.auth$.isLoggedIn$)
-  @myStore.Register(['auth$', 'isLoggedIn'])
-  isLoggedIn: BehaviorSubject<Boolean>;
-
-  @myStore.Connect()
-  @myStore.Register()
-  isLoggedIn$: BehaviorSubject<Boolean>;
+  isLoggedIn$: NodeSubject<Boolean>;
 
   @myStore.Connect(
     'isLoggedIn$',
@@ -28,11 +21,20 @@ export class CustomStoredComponent implements OnInit {
   isLoggedInReadonly$: Observable<Boolean>;
 
   @myStore.ConnectByAccessor(store => store.isLoggedIn$)
-  isLoggedInByAccessor$: BehaviorSubject<Boolean>;
+  isLoggedInByAccessor$: NodeSubject<Boolean>;
+
+  @myStore.Connect()
+  @myStore.Register()
+  auth$: NodeSubject<Object>;
+
+  @myStore.ConnectByAccessor(store => store.auth$.isLoggedIn$)
+  @myStore.Register(['auth$', 'isLoggedIn'])
+  isLoggedIn: NodeSubject<Boolean>;
 
   constructor() {}
 
-  ngOnInit() {}
+  ngOnInit() {
+  }
 
   login() {
     this.isLoggedIn$.next(true);
