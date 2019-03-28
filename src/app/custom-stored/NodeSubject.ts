@@ -8,7 +8,7 @@ export class Node<T> extends BehaviorSubject<T> {
 
   constructor(value: T, parentReference, propertyName?: string) {
     super(value);
-    this.parent = <Node<typeof parentReference>>parentReference;
+    this.parent = <Node<typeof parentReference>>parentReference || null;
     this.propertyName = propertyName || '';
     this.children = {};
   }

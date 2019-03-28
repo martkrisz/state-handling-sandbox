@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
-import { Store } from './store';
+import { Store } from './Store';
 
 @Injectable({
   providedIn: 'root'
 })
-export class InjectableStoreService extends Store {
+export class StoreService extends Store {
 
   constructor() {
     super();

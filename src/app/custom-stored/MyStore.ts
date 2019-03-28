@@ -1,5 +1,5 @@
-import { Store } from './store';
-import { ExampleInterface } from './example-interface';
+import { Store } from './Store';
+import { ExampleInterface } from './ExampleInterface';
 
 
 class MyStore extends Store<ExampleInterface> {

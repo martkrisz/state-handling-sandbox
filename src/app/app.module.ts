@@ -12,7 +12,7 @@ import { ReduxStoredComponent } from './redux-stored/redux-stored.component';
 import { environment } from 'src/environments/environment.prod';
 import { rootReducer } from './redux-stored/reducers/core.reducer';
 import { CustomStoredComponent } from './custom-stored/custom-stored.component';
-import { InjectableStoreService } from './custom-stored/injectable-store.service';
+import { StoreService } from './custom-stored/store.service';
 
 @NgModule({
   declarations: [
@@ -27,7 +27,7 @@ import { InjectableStoreService } from './custom-stored/injectable-store.service
     NgReduxModule,
     FormsModule
   ],
-  providers: [AuthActions, InjectableStoreService],
+  providers: [AuthActions, StoreService],
   bootstrap: [AppComponent]
 })
 export class AppModule {

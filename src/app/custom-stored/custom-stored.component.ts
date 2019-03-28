@@ -1,4 +1,4 @@
-import { myStore } from './my-store';
+import { myStore } from './MyStore';
 import { Component, OnInit } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 

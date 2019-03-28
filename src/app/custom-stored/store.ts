@@ -1,5 +1,5 @@
-import { Node } from './node';
-import { HistoryFragment } from './history-fragment';
+import { Node } from './NodeSubject';
+import { HistoryFragment } from './HistoryFragment';
 import { Observable } from 'rxjs';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
@@ -44,11 +44,11 @@ export class Store<T extends Object = any> {
     let tempState = null;
     if (propertyPath.length === 1) {
       propertyName = propertyPath[0];
-      tempState = this.state;
+      tempState = this.state$;
     } else {
       for (let index = 0; index < propertyPath.length; ++index) {
         if (index < propertyPath.length - 1) {
-          tempState = this.state[propertyPath[index]];
+          tempState = this.state$[propertyPath[index]];
         }
         if (tempState === undefined) {
           return;
@@ -75,7 +75,7 @@ export class Store<T extends Object = any> {
 
   connect(propertyName: string): Node<any> {
     propertyName = this.padWith$(propertyName);
-    const connectedProperty = new Node<any>(null, this.getSubstate(propertyName));
+    const connectedProperty = new Node<any>(null, this.getSubstate(propertyName), propertyName);
     connectedProperty.pipe(distinctUntilChanged()).subscribe(value => {
       this.getSubstate(propertyName).next(value);
     });
@@ -95,10 +95,10 @@ export class Store<T extends Object = any> {
 
   deleteSubstate(propertyName: string) {
     const prevState = new Object(this.state);
-    if (this.state[propertyName]) {
+    if (this.state$[propertyName]) {
       this.getSubstate(propertyName).observers.forEach(observer => observer.complete());
       this.getSubstate(propertyName).complete();
-      delete this.state[propertyName];
+      delete this.state$[propertyName];
       this.updateState();
       this.updateHistory(prevState, this.state, `SUBSTATE ${propertyName} DELETED`);
     }
@@ -107,6 +107,7 @@ export class Store<T extends Object = any> {
   emptyState() {
     const prevState = new Object(this.state);
     this.state = null;
+    this.state$.next(this.state);
     this.updateState();
     this.updateHistory(prevState, this.state, 'STATE_EMPTIED');
   }
@@ -120,7 +121,7 @@ export class Store<T extends Object = any> {
   }
 
   getSubstate(propertyName: string): Node<any> {
-    return this.state[propertyName];
+    return this.state$[propertyName];
   }
 
   getSubstateAsObservable(propertyName: string): Observable<any> {
@@ -128,7 +129,7 @@ export class Store<T extends Object = any> {
   }
 
   getSubStateWithAccessor(accessor: (store) => any): Node<any> {
-    return accessor(this.state);
+    return accessor(this.state$);
   }
 
   getSubStateWithAccessorAsReadonly(accessor: (store) => any): Observable<any> {
