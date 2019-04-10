@@ -9,6 +9,7 @@ import { Observable } from 'rxjs';
   styleUrls: ['./custom-stored.component.scss']
 })
 export class CustomStoredComponent implements OnInit {
+
   @myStore.Connect()
   @myStore.Register()
   isLoggedIn$: NodeSubject<Boolean>;

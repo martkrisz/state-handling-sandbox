@@ -14,6 +14,7 @@ import { rootReducer } from './redux-stored/reducers/core.reducer';
 import { CustomStoredComponent } from './custom-stored/custom-stored.component';
 import { StoreService } from './custom-stored/store.service';
 
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -27,7 +28,7 @@ import { StoreService } from './custom-stored/store.service';
     NgReduxModule,
     FormsModule
   ],
-  providers: [AuthActions, StoreService],
+  providers: [AuthActions],
   bootstrap: [AppComponent]
 })
 export class AppModule {

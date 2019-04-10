@@ -28,7 +28,7 @@ export class NodeSubject<T> extends BehaviorSubject<T> {
       Object.defineProperty(this.parent.children, this.propertyName, {
         enumerable: true,
         configurable: true,
-        value
+        get: () => value
       });
     }
     if (this.parent) {
