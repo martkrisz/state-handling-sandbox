@@ -7,9 +7,5 @@
   "exclude": [
     "test.ts",
     "**/*.spec.ts"
-  ],
-  "angularCompilerOptions": {
-    "skipTemplateCodegen": true,
-    "strictMetadataEmit": true
-  }
+  ]
 }

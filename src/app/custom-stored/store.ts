@@ -42,7 +42,6 @@ export class Store<T extends Object = any> {
         value: newProperty
       });
       this.updateState();
-    } else {
     }
   }
 
@@ -65,10 +64,31 @@ export class Store<T extends Object = any> {
   }
 
   deleteSubstate(propertyName: string) {
-    if (this.state$[propertyName]) {
+    if (propertyName.endsWith('$')) {
+      propertyName = propertyName + '$';
+    }
+    const propertyPath = propertyName.split('.');
+    let tempState = null;
+    if (propertyPath.length === 1) {
+      propertyName = propertyPath[0];
+      tempState = this.state$;
+    } else {
+      for (let index = 0; index < propertyPath.length; ++index) {
+        if (index < propertyPath.length - 1) {
+          tempState = this.state$[propertyPath[index]];
+        }
+        if (tempState === undefined) {
+          return;
+        }
+        if (index === propertyPath.length - 1) {
+          propertyName = propertyPath[index];
+        }
+      }
+    }
+    if (tempState[propertyName]) {
       this.getSubstate(propertyName).observers.forEach(observer => observer.complete());
       this.getSubstate(propertyName).complete();
-      delete this.state$[propertyName];
+      delete tempState[propertyName];
       this.updateState();
     }
   }
