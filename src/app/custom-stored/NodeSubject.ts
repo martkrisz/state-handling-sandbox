@@ -24,19 +24,22 @@ export class NodeSubject<T> extends BehaviorSubject<T> {
 
   next(value: T): void {
     super.next(value);
-    if (this.parent && this.propertyName !== '') {
+    if (this.parent && this.propertyName !== '' && this.parent.children[this.propertyName] === undefined) {
       Object.defineProperty(this.parent.children, this.propertyName, {
         enumerable: true,
         configurable: true,
         value
       });
-    }
-    if (this.parent) {
+    } else if (this.parent && this.parent.children[this.propertyName] !== undefined && this.propertyName !== '') {
+      this.parent.children[this.propertyName] = value;
       this.parent.children$.next(this.parent.children);
     }
-    if (this.propertyName === 'isLoggedIn$' && this.parent.propertyName === 'auth$') {
+    /*if (this.parent) {
+      this.parent.children$.next(this.parent.children);
+    }*/
+    /*if (this.propertyName === 'isLoggedIn$' && this.parent.propertyName === 'auth$') {
       console.log(this.parent.children);
       console.log(this.parent.children$.value);
-    }
+    }*/
   }
 }
