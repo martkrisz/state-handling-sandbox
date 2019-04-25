@@ -12,6 +12,7 @@ export class NodeSubject<T> extends BehaviorSubject<T> {
     this.propertyName = propertyName || '';
     this.children = {};
     this.children$ = new BehaviorSubject<any>(this.children);
+    this.handleParentChildren(value);
   }
 
   getChildren() {
@@ -24,6 +25,10 @@ export class NodeSubject<T> extends BehaviorSubject<T> {
 
   next(value: T): void {
     super.next(value);
+    this.handleParentChildren(value);
+  }
+
+  private handleParentChildren(value) {
     if (this.parent && this.propertyName !== '' && this.parent.children[this.propertyName] === undefined) {
       this.parent.children = Object.defineProperty(this.parent.children, this.propertyName, {
         enumerable: true,

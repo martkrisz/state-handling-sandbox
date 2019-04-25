@@ -35,9 +35,6 @@ export class CustomStoredComponent implements OnInit {
 
   ngOnInit() {
     this.authChildren$.subscribe(console.log);
-    setTimeout(() => {
-      console.log(myStore.getWholeStateSubject());
-    }, 5000);
   }
 
   login() {
@@ -59,7 +56,7 @@ export class CustomStoredComponent implements OnInit {
   loginNested() {
     this.isLoggedIn.next(true);
     setTimeout(() => {
-      console.log(this.authChildren$);
+      this.auth$.getChildren();
     }, 1000);
   }
 
