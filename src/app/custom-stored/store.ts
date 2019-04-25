@@ -39,7 +39,8 @@ export class Store<T extends Object = any> {
       Object.defineProperty(tempState, propertyName, {
         enumerable: true,
         configurable: true,
-        value: newProperty
+        value: newProperty,
+        writable: true
       });
       this.updateState();
     }
@@ -151,7 +152,8 @@ export class Store<T extends Object = any> {
         Object.defineProperty(target, key, {
           value: getter(),
           enumerable: true,
-          configurable: true
+          configurable: true,
+          writable: true
         });
       }
     };
@@ -171,7 +173,8 @@ export class Store<T extends Object = any> {
         Object.defineProperty(target, key, {
           value: getter(),
           enumerable: true,
-          configurable: true
+          configurable: true,
+          writable: true
         });
       }
     };
